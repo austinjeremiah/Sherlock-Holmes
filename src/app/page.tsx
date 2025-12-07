@@ -2,7 +2,6 @@ import { Code2, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Navbar } from "./_components/navbar";
-import { Demo } from "./demo/demo";
 
 export default function Home() {
 	return (
@@ -14,34 +13,29 @@ export default function Home() {
 						<div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-accent border border-border mb-6 sm:mb-8">
 							<Sparkles className="w-4 h-4 text-primary" />
 							<span className="text-xs sm:text-sm font-medium text-muted-foreground">
-								Agent Development Kit for TypeScript
+								Sherlock Holmes AI Project
 							</span>
 						</div>
 						<h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight">
-							Build{" "}
+							Welcome to{" "}
 							<span className="bg-linear-to-r from-primary to-pink-400 bg-clip-text text-transparent">
-								Intelligent Agents
-							</span>{" "}
-							with ADK-TS
+								Sherlock Holmes
+							</span>
 						</h1>
 
 						<p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 sm:mb-10 px-2">
-							A comprehensive TypeScript framework for building sophisticated AI
-							agents with multi-LLM support, advanced tools, and flexible
-							conversation flows.
+							Your AI-powered application built with ADK-TS. Ready to start building
+							something amazing.
 						</p>
 
 						<div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center flex-wrap">
-							<div className="w-full sm:w-auto">
-								<Demo />
-							</div>
 							<Link
 								href="https://adk.iqai.com/docs/framework/get-started"
 								target="_blank"
 								rel="noopener noreferrer"
 								className={buttonVariants({
 									size: "lg",
-									variant: "secondary",
+									variant: "default",
 									className:
 										"flex items-center gap-2 w-full sm:w-auto justify-center",
 								})}
