@@ -28,23 +28,19 @@ export default function Home() {
 							something amazing.
 						</p>
 
-						<div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center flex-wrap">
-							<Link
-								href="https://adk.iqai.com/docs/framework/get-started"
-								target="_blank"
-								rel="noopener noreferrer"
-								className={buttonVariants({
-									size: "lg",
-									variant: "default",
-									className:
-										"flex items-center gap-2 w-full sm:w-auto justify-center",
-								})}
-							>
-								<Zap className="w-5 h-5" />
-								Get Started
-							</Link>
-
-							<Link
+					<div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center flex-wrap">
+						<Link
+							href="/investigate"
+							className={buttonVariants({
+								size: "lg",
+								variant: "default",
+								className:
+									"flex items-center gap-2 w-full sm:w-auto justify-center",
+							})}
+						>
+							<Zap className="w-5 h-5" />
+							Get Started
+						</Link>							<Link
 								href="https://adk.iqai.com/"
 								target="_blank"
 								rel="noopener noreferrer"

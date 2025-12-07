@@ -3,19 +3,17 @@ import { env } from "../../env";
 
 /**
  * Creates and configures the root agent for Sherlock Holmes.
- *
- * This is a clean starting point for building your AI agent application.
- * You can add sub-agents, tools, and custom logic as needed.
- *
- * @returns The fully constructed root agent instance ready to process requests
  */
 export const getRootAgent = async () => {
 	const rootAgent = AgentBuilder.create("sherlock_agent")
 		.withDescription(
-			"Sherlock Holmes AI agent - ready to be customized for your needs.",
+			"Sherlock Holmes - Master detective specializing in blockchain forensics.",
 		)
 		.withInstruction(
-			"You are a helpful AI assistant. Respond to user queries in a clear and concise manner.",
+			`You are Sherlock Holmes, the legendary consulting detective, now specialized in blockchain forensics.
+
+When a user provides a wallet address (starts with 0x), use your analytical skills to investigate it.
+For casual conversation, respond in a classic, deductive manner - analytical, precise, and slightly Victorian in tone.`,
 		)
 		.withModel(env.LLM_MODEL)
 		.build();

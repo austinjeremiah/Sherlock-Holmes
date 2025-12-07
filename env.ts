@@ -1,6 +1,8 @@
 import { config } from "dotenv";
 import { z } from "zod";
 
+// Load .env.local first (Next.js convention), then .env
+config({ path: '.env.local' });
 config();
 
 /**
@@ -14,6 +16,7 @@ export const envSchema = z.object({
 	ADK_DEBUG: z.coerce.boolean().default(false),
 	GOOGLE_API_KEY: z.string().min(1, "GOOGLE_API_KEY cannot be empty"),
 	LLM_MODEL: z.string().default("gemini-2.5-flash"),
+	ETHERSCAN_API_KEY: z.string().min(1, "ETHERSCAN_API_KEY cannot be empty"),
 });
 
 /**
