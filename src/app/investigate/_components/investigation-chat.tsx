@@ -4,12 +4,32 @@ import { Bot, Send, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { askSherlock } from "../_actions";
+import { askSherlock, SherlockResponse } from "../_actions";
+import { KnowledgeGraph } from "./knowledge-graph";
+
+interface GraphNode {
+	id: string;
+	type: "target" | "wallet" | "cex" | "mixer" | "contract";
+	label?: string;
+	riskLevel?: "low" | "medium" | "high";
+}
+
+interface GraphEdge {
+	source: string;
+	target: string;
+	txCount: number;
+	totalValue: string;
+	risk?: "low" | "medium" | "high";
+}
 
 type Message = {
 	role: "user" | "agent";
 	content: string;
 	id: string;
+	graph?: {
+		nodes: GraphNode[];
+		edges: GraphEdge[];
+	};
 };
 
 export const InvestigationChat = () => {
@@ -73,11 +93,12 @@ export const InvestigationChat = () => {
 		setIsLoading(true);
 
 		try {
-			const result = await askSherlock(input);
+			const result: SherlockResponse = await askSherlock(input);
 			const agentMessage: Message = {
 				id: generateId(),
 				role: "agent",
-				content: result || "The case grows more curious...",
+				content: result.text || "The case grows more curious...",
+				graph: result.graph,
 			};
 
 			setMessages((prev) => [...prev, agentMessage]);
@@ -149,7 +170,7 @@ export const InvestigationChat = () => {
 								)}
 
 								<div
-									className={`max-w-[80%] ${
+									className={`max-w-[90%] ${
 										message.role === "user"
 											? "bg-gray-800 border border-gray-700"
 											: "bg-transparent"
@@ -158,13 +179,23 @@ export const InvestigationChat = () => {
 									<p
 										className={`text-sm leading-relaxed font-mono ${
 											message.role === "user" ? "text-gray-100" : "text-gray-300"
-										}`}
+										} whitespace-pre-wrap`}
 									>
 										{displayContent}
 										{isLastAgentMessage && isTyping && (
 											<span className="inline-block w-2 h-4 bg-gray-400 ml-1 animate-pulse" />
 										)}
 									</p>
+									
+									{/* Render knowledge graph if available */}
+									{message.graph && !isTyping && (
+										<div className="mt-4">
+											<KnowledgeGraph 
+												nodes={message.graph.nodes} 
+												edges={message.graph.edges} 
+											/>
+										</div>
+									)}
 								</div>
 
 								{message.role === "user" && (

@@ -3,7 +3,30 @@
 import { getRootAgent } from "@/agents";
 import { analyzeWallet } from "@/agents/evidenceAgent";
 
-export async function askSherlock(message: string): Promise<string> {
+interface GraphNode {
+	id: string;
+	type: "target" | "wallet" | "cex" | "mixer" | "contract";
+	label?: string;
+	riskLevel?: "low" | "medium" | "high";
+}
+
+interface GraphEdge {
+	source: string;
+	target: string;
+	txCount: number;
+	totalValue: string;
+	risk?: "low" | "medium" | "high";
+}
+
+export interface SherlockResponse {
+	text: string;
+	graph?: {
+		nodes: GraphNode[];
+		edges: GraphEdge[];
+	};
+}
+
+export async function askSherlock(message: string): Promise<SherlockResponse> {
 	try {
 		// If message contains a wallet address, analyze it first
 		const walletMatch = message.match(/0x[a-fA-F0-9]{40}/);
@@ -14,53 +37,109 @@ export async function askSherlock(message: string): Promise<string> {
 			const evidence = JSON.parse(evidenceJson);
 			
 			// Format as a proper detective report
-			let report = `**INVESTIGATION REPORT**\n\n`;
-			report += `**Subject Wallet:** ${evidence.wallet}\n`;
-			report += `**Chain:** ${evidence.chain}\n`;
-			report += `**Active Period:** ${new Date(evidence.firstSeen).toLocaleDateString()} to ${new Date(evidence.lastSeen).toLocaleDateString()}\n\n`;
+			let report = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			report += `        BLOCKCHAIN FORENSICS REPORT\n`;
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 			
-			report += `**TRANSACTION SUMMARY**\n`;
-			report += `• Total Transactions: ${evidence.txCount}\n`;
-			report += `• Funds Received: ${evidence.totalIn} ETH\n`;
-			report += `• Funds Sent: ${evidence.totalOut} ETH\n`;
-			report += `• Unique Counterparties: ${evidence.uniqueCounterparties}\n\n`;
+			report += `SUBJECT WALLET\n`;
+			report += `  ${evidence.wallet}\n\n`;
 			
-			report += `**RISK ASSESSMENT**\n`;
-			if (evidence.riskIndicators.cexInteraction) report += `✓ Exchange Interaction Detected\n`;
-			if (evidence.riskIndicators.mixerUsage) report += `⚠️ MIXER USAGE DETECTED - HIGH RISK\n`;
-			if (evidence.riskIndicators.highVolumeSpike) report += `⚠️ High Volume Spike Detected\n`;
-			if (evidence.riskIndicators.newWalletPattern) report += `⚠️ New Wallet with High Activity\n`;
+			report += `NETWORK: ${evidence.chain}\n`;
+			report += `ACTIVE: ${new Date(evidence.firstSeen).toLocaleDateString()} → ${new Date(evidence.lastSeen).toLocaleDateString()}\n\n`;
+			
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			report += `TRANSACTION SUMMARY\n`;
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			report += `  Total Transactions: ${evidence.txCount}\n`;
+			report += `  Funds Received:     ${evidence.totalIn} ETH\n`;
+			report += `  Funds Sent:         ${evidence.totalOut} ETH\n`;
+			report += `  Counterparties:     ${evidence.uniqueCounterparties}\n\n`;
+			
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			report += `RISK ASSESSMENT\n`;
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			if (evidence.riskIndicators.mixerUsage) report += `  ⚠️  MIXER USAGE - HIGH RISK\n`;
+			if (evidence.riskIndicators.highVolumeSpike) report += `  ⚠️  High Volume Spike\n`;
+			if (evidence.riskIndicators.newWalletPattern) report += `  ⚠️  New Wallet High Activity\n`;
+			if (evidence.riskIndicators.cexInteraction) report += `  ✓  Exchange Interaction\n`;
 			if (!evidence.riskIndicators.mixerUsage && !evidence.riskIndicators.highVolumeSpike && !evidence.riskIndicators.newWalletPattern) {
-				report += `✓ No major red flags detected\n`;
+				report += `  ✓  No Major Red Flags\n`;
 			}
 			
 			if (evidence.highRiskPatterns.length > 0) {
-				report += `\n**SUSPICIOUS PATTERNS:**\n`;
+				report += `\nSUSPICIOUS PATTERNS:\n`;
 				evidence.highRiskPatterns.forEach((pattern: string) => {
-					report += `⚠️ ${pattern}\n`;
+					report += `  ⚠️  ${pattern}\n`;
 				});
 			}
+			report += `\n`;
 			
-			report += `\n**COUNTERPARTIES:**\n`;
-			evidence.graph.nodes.forEach((node: any) => {
-				if (node.type !== 'target') {
-					const edge = evidence.graph.edges.find((e: any) => e.target === node.id);
-					const typeLabel = node.type === 'cex' ? ' Exchange' : 
-									  node.type === 'mixer' ? ' Mixer' :
-									  node.type === 'contract' ? ' Contract' : ' Wallet';
-					report += `• ${typeLabel}: ${node.id}\n`;
-					report += `  └─ ${edge?.txCount || 0} transactions, ${edge?.totalValue || 0} ETH total\n`;
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			report += `KNOWLEDGE GRAPH\n`;
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+			
+			// Build ASCII knowledge graph
+			report += `                [TARGET WALLET]\n`;
+			report += `                ${evidence.wallet}\n`;
+			report += `                       |\n`;
+			
+			const nodes = evidence.graph.nodes.filter((n: any) => n.type !== 'target');
+			nodes.forEach((node: any, index: number) => {
+				const edge = evidence.graph.edges.find((e: any) => e.target === node.id);
+				const isLast = index === nodes.length - 1;
+				const branch = isLast ? '└──' : '├──';
+				
+				let typeIcon = '';
+				let typeName = '';
+				if (node.type === 'cex') {
+					typeIcon = '🏦';
+					typeName = 'EXCHANGE';
+				} else if (node.type === 'mixer') {
+					typeIcon = '⚠️';
+					typeName = 'MIXER';
+				} else if (node.type === 'contract') {
+					typeIcon = '📄';
+					typeName = 'CONTRACT';
+				} else {
+					typeIcon = '👤';
+					typeName = 'WALLET';
 				}
+				
+				report += `                       |\n`;
+				report += `                ${branch}─[${typeIcon} ${typeName}]\n`;
+				report += `                       ${node.id}\n`;
+				report += `                       └─> ${edge?.txCount || 0} txs | ${edge?.totalValue || 0} ETH\n`;
 			});
 			
-			report += `\n**CONCLUSION:**\n`;
-			report += evidence.riskIndicators.mixerUsage 
-				? `The subject has engaged in suspicious activity through privacy mixers. Further investigation warranted.`
-				: evidence.riskIndicators.cexInteraction
-				? `The subject appears to be a legitimate user conducting standard exchange transactions.`
-				: `The subject exhibits normal wallet behavior with no significant risk indicators.`;
+			report += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			report += `CONCLUSION\n`;
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 			
-			return report;
+			if (evidence.riskIndicators.mixerUsage) {
+				report += `⚠️  SUSPICIOUS ACTIVITY DETECTED\n`;
+				report += `The subject has engaged with known privacy mixers.\n`;
+				report += `Recommend: Further investigation and monitoring.\n`;
+			} else if (evidence.riskIndicators.cexInteraction) {
+				report += `✓  LEGITIMATE ACTIVITY\n`;
+				report += `Standard exchange transactions detected.\n`;
+				report += `Risk Level: LOW\n`;
+			} else {
+				report += `✓  NORMAL BEHAVIOR\n`;
+				report += `No significant risk indicators found.\n`;
+				report += `Risk Level: LOW\n`;
+			}
+			
+			report += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			report += `End of Report - Evidence Agent\n`;
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+			
+			return {
+				text: report,
+				graph: {
+					nodes: evidence.graph.nodes,
+					edges: evidence.graph.edges
+				}
+			};
 		}
 
 		// For regular conversation, use the agent
@@ -71,9 +150,13 @@ export async function askSherlock(message: string): Promise<string> {
 			session,
 		});
 
-		return response.text || "I must contemplate this matter further.";
+		return {
+			text: response.text || "I must contemplate this matter further."
+		};
 	} catch (error) {
 		console.error("Error in askSherlock:", error);
-		return "I apologize, but I encountered an obstacle in my investigation.";
+		return {
+			text: "I apologize, but I encountered an obstacle in my investigation."
+		};
 	}
 }
