@@ -119,6 +119,24 @@ export async function analyzeWallet(walletAddress: string): Promise<string> {
 				risk: riskLevel,
 			});
 		}
+		
+		// Add transaction metadata directly to each node
+		for (const node of nodes) {
+			if (node.type === 'target') {
+				// Target wallet has all outgoing edges
+				(node as any).txCount = transactions.length;
+				(node as any).ethVolume = (totalIn + totalOut).toFixed(4);
+				(node as any).connections = counterpartyMap.size;
+			} else {
+				// Find the edge for this counterparty node
+				const edge = edges.find(e => e.target === node.id);
+				if (edge) {
+					(node as any).txCount = edge.txCount;
+					(node as any).ethVolume = edge.totalValue;
+					(node as any).connections = 1;
+				}
+			}
+		}
 
 		// Detect patterns
 		if (transactions.length > 0) {
@@ -169,6 +187,23 @@ export async function analyzeWallet(walletAddress: string): Promise<string> {
 			highRiskPatterns,
 			graph: { nodes, edges },
 			riskIndicators,
+			// Add detailed analysis
+			detailedAnalysis: {
+				walletAge: transactions.length > 0 
+					? Math.floor((Number.parseInt(transactions[transactions.length - 1].timeStamp) - Number.parseInt(transactions[0].timeStamp)) / (60 * 60 * 24))
+					: 0,
+				averageTxValue: transactions.length > 0 ? ((totalIn + totalOut) / transactions.length).toFixed(4) : "0",
+				netFlow: (totalIn - totalOut).toFixed(4),
+				transactionFrequency: transactions.length > 0
+					? (transactions.length / Math.max(1, Math.floor((Number.parseInt(transactions[transactions.length - 1].timeStamp) - Number.parseInt(transactions[0].timeStamp)) / (60 * 60 * 24)))).toFixed(2)
+					: "0",
+				largestTransaction: transactions.length > 0
+					? Math.max(...transactions.map(tx => Number.parseInt(tx.value) / 1e18)).toFixed(4)
+					: "0",
+				smallestTransaction: transactions.length > 0
+					? Math.min(...transactions.map(tx => Number.parseInt(tx.value) / 1e18).filter(v => v > 0)).toFixed(4)
+					: "0",
+			}
 		};
 
 		console.log(

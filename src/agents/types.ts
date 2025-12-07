@@ -46,6 +46,14 @@ export interface EvidenceSummary {
 		cexInteraction: boolean;
 		exploitContractInteraction: boolean;
 	};
+	detailedAnalysis?: {
+		walletAge: number;
+		averageTxValue: string;
+		netFlow: string;
+		transactionFrequency: string;
+		largestTransaction: string;
+		smallestTransaction: string;
+	};
 }
 
 // Prosecution Case

@@ -21,7 +21,11 @@ interface GraphEdge {
 export interface SherlockResponse {
 	text: string;
 	graph?: {
-		nodes: GraphNode[];
+		nodes: (GraphNode & { 
+			txCount?: number; 
+			ethVolume?: string;
+			connections?: number;
+		})[];
 		edges: GraphEdge[];
 	};
 }
@@ -54,6 +58,18 @@ export async function askSherlock(message: string): Promise<SherlockResponse> {
 			report += `  Funds Received:     ${evidence.totalIn} ETH\n`;
 			report += `  Funds Sent:         ${evidence.totalOut} ETH\n`;
 			report += `  Counterparties:     ${evidence.uniqueCounterparties}\n\n`;
+			
+			if (evidence.detailedAnalysis) {
+				report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+				report += `DETAILED ANALYSIS\n`;
+				report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+				report += `  Wallet Age:         ${evidence.detailedAnalysis.walletAge} days\n`;
+				report += `  Net Flow:           ${evidence.detailedAnalysis.netFlow} ETH\n`;
+				report += `  Average Tx Value:   ${evidence.detailedAnalysis.averageTxValue} ETH\n`;
+				report += `  Tx Frequency:       ${evidence.detailedAnalysis.transactionFrequency} txs/day\n`;
+				report += `  Largest Tx:         ${evidence.detailedAnalysis.largestTransaction} ETH\n`;
+				report += `  Smallest Tx:        ${evidence.detailedAnalysis.smallestTransaction} ETH\n\n`;
+			}
 			
 			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 			report += `RISK ASSESSMENT\n`;
@@ -145,13 +161,13 @@ export async function askSherlock(message: string): Promise<SherlockResponse> {
 		// For regular conversation, use the agent
 		const { runner, session } = await getRootAgent();
 
-		const response = await runner.ask(message, {
-			stream: false,
-			session,
-		});
+		const response = await runner.ask(message);
+		
+		// Ensure we have a valid string response
+		const responseText = typeof response === 'string' ? response.trim() : '';
 
 		return {
-			text: response.text || "I must contemplate this matter further."
+			text: responseText || "I must contemplate this matter further."
 		};
 	} catch (error) {
 		console.error("Error in askSherlock:", error);
