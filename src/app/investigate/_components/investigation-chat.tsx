@@ -50,6 +50,7 @@ export const InvestigationChat = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [paymentStatus, setPaymentStatus] = useState<'idle' | 'paying' | 'investigating'>('idle');
 	const [currentGraph, setCurrentGraph] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] } | null>(null);
+	const [investigationComplete, setInvestigationComplete] = useState(false);
 	const chatRef = useRef<HTMLDivElement>(null);
 
 	// Wallet connection
@@ -65,6 +66,51 @@ export const InvestigationChat = () => {
 			chatRef.current.scrollTop = chatRef.current.scrollHeight;
 		}
 	}, [messages]);
+
+	const downloadReport = () => {
+		// Compile all investigation data
+		const agentMessages = messages.filter(m => m.agentStep);
+		const reportContent = `
+SHERLOCK HOLMES - BLOCKCHAIN FORENSICS DIVISION
+INVESTIGATION REPORT
+Generated: ${new Date().toLocaleString()}
+
+${agentMessages.map(msg => `
+${'='.repeat(80)}
+${msg.agentStep?.toUpperCase()} AGENT
+${'='.repeat(80)}
+
+${msg.content}
+
+`).join('\n')}
+
+${currentGraph ? `
+${'='.repeat(80)}
+NETWORK ANALYSIS
+${'='.repeat(80)}
+
+Total Wallets Analyzed: ${currentGraph.nodes.length}
+Total Connections: ${currentGraph.edges.length}
+
+Nodes:
+${currentGraph.nodes.map(node => `- ${node.id} (${node.type}) ${node.riskLevel ? `[Risk: ${node.riskLevel}]` : ''}`).join('\n')}
+
+Connections:
+${currentGraph.edges.map(edge => `- ${edge.source} → ${edge.target} (${edge.txCount} transactions, ${edge.totalValue})`).join('\n')}
+` : ''}
+		`.trim();
+
+		// Create and download
+		const blob = new Blob([reportContent], { type: 'text/plain' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `sherlock-investigation-${Date.now()}.txt`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	};
 
 	const handleSubmit = async (e?: React.FormEvent) => {
 		e?.preventDefault();
@@ -178,6 +224,9 @@ export const InvestigationChat = () => {
 					if (result.graph) {
 						setCurrentGraph(result.graph);
 					}
+					
+					// Mark investigation as complete
+					setInvestigationComplete(true);
 				}
 			} else {
 				// Regular conversation - no payment needed
@@ -299,11 +348,11 @@ export const InvestigationChat = () => {
 				</div>
 
 				{/* Right: Knowledge Graph Panel */}
-				<div className="flex-1 border-l border-gray-700 bg-black/50 overflow-y-auto">
+				<div className="flex-1 border-l border-gray-700 bg-white overflow-y-auto">
 					{currentGraph && currentGraph.nodes.length > 0 ? (
 						<div className="p-6">
 							<div className="border-b border-gray-700 pb-3 mb-4">
-								<h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+								<h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
 									Network Analysis
 								</h2>
 							</div>
@@ -315,11 +364,11 @@ export const InvestigationChat = () => {
 					) : (
 						<div className="flex items-center justify-center h-full p-6">
 							<div className="text-center">
-								<Bot className="w-16 h-16 text-gray-700 mx-auto mb-4" strokeWidth={1} />
+								<Bot className="w-16 h-16 text-gray-400 mx-auto mb-4" strokeWidth={1} />
 								<p className="text-sm text-gray-600 font-mono">
 									Knowledge graph will appear here
 								</p>
-								<p className="text-xs text-gray-700 font-mono mt-2">
+								<p className="text-xs text-gray-500 font-mono mt-2">
 									Investigate a wallet address to view network connections
 								</p>
 							</div>
@@ -328,53 +377,60 @@ export const InvestigationChat = () => {
 				</div>
 			</div>
 
-			{/* Input Area - Typewriter Style - Left Side Only */}
+			{/* Input Area - Typewriter Style - Full Width */}
 			<div className="border-t border-gray-700 bg-black">
-				<div className="flex">
-					{/* Left side input (matches chat area) */}
-					<div className="flex-1 px-6 py-4">
-						{/* Payment status indicator */}
-						{!isConnected && (
-							<div className="mb-3 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
-								<p className="text-xs text-yellow-400 font-mono">
-									⚠️ Connect wallet to investigate blockchain addresses (requires 0.0001 ETH payment)
-								</p>
-							</div>
-						)}
-						
-						{paymentStatus !== 'idle' && (
-							<div className="mb-3 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-								<p className="text-xs text-blue-400 font-mono">
-									{paymentStatus === 'paying' && `💸 x402: Waiting for payment approval...`}
-									{paymentStatus === 'investigating' && `🔍 x402: Payment confirmed, investigating...`}
-								</p>
-							</div>
-						)}
-						
-						<form onSubmit={handleSubmit} className="flex gap-3 items-end">
-							<Textarea
-								value={input}
-								onChange={(e) => setInput(e.target.value)}
-								onKeyDown={handleKeyDown}
-								placeholder="Type your inquiry here..."
-								className="flex-1 min-h-[50px] max-h-[200px] resize-none bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 font-mono text-sm focus-visible:ring-gray-600"
-								disabled={isLoading}
-							/>
-							<Button
-								type="submit"
-								disabled={!input.trim() || isLoading}
-								className="h-[50px] px-8 bg-white hover:bg-gray-200 text-black border border-gray-300 font-mono text-sm font-semibold"
-							>
-								Send
-							</Button>
-						</form>
-						<p className="text-xs text-gray-600 mt-2 font-mono text-center">
-							Press Enter to send • Shift+Enter for new line
-						</p>
-					</div>
+				<div className="px-6 py-4">
+					{/* Payment status indicator */}
+					{!isConnected && (
+						<div className="mb-3 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+							<p className="text-xs text-yellow-400 font-mono">
+								⚠️ Connect wallet to investigate blockchain addresses (requires 0.0001 ETH payment)
+							</p>
+						</div>
+					)}
 					
-					{/* Right side empty (matches graph area) */}
-					<div className="flex-1 border-l border-gray-700 bg-black/50"></div>
+					{paymentStatus !== 'idle' && (
+						<div className="mb-3 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+							<p className="text-xs text-blue-400 font-mono">
+								{paymentStatus === 'paying' && `💸 x402: Waiting for payment approval...`}
+								{paymentStatus === 'investigating' && `🔍 x402: Payment confirmed, investigating...`}
+							</p>
+						</div>
+					)}
+					
+					<form onSubmit={handleSubmit} className="flex gap-3 items-end">
+						<Textarea
+							value={input}
+							onChange={(e) => setInput(e.target.value)}
+							onKeyDown={handleKeyDown}
+							placeholder="Type your inquiry here..."
+							className="flex-1 min-h-[50px] max-h-[200px] resize-none bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 font-mono text-sm focus-visible:ring-gray-600"
+							disabled={isLoading}
+						/>
+						<Button
+							type="submit"
+							disabled={!input.trim() || isLoading}
+							className="h-[50px] px-8 bg-white hover:bg-gray-200 text-black border border-gray-300 font-mono text-sm font-semibold"
+						>
+							Send
+						</Button>
+					</form>
+					
+					{/* Download Report Button */}
+					{investigationComplete && (
+						<div className="mt-4">
+							<Button
+								onClick={downloadReport}
+								className="w-full h-[50px] bg-green-600 hover:bg-green-700 text-white border border-green-500 font-mono text-sm font-semibold"
+							>
+								Download Investigation Report
+							</Button>
+						</div>
+					)}
+					
+					<p className="text-xs text-gray-600 mt-2 font-mono text-center">
+						Press Enter to send • Shift+Enter for new line
+					</p>
 				</div>
 			</div>
 		</div>

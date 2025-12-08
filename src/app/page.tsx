@@ -55,7 +55,7 @@ export default function Home() {
 							<Zap className="w-5 h-5" />
 							Get Started
 						</Link>							<Link
-								href="https://adk.iqai.com/"
+								href="https://github.com/austinjeremiah/Sherlock-Holmes/blob/main/README.md"
 								target="_blank"
 								rel="noopener noreferrer"
 								className={buttonVariants({
