@@ -153,9 +153,9 @@ export async function analyzeWallet(walletAddress: string): Promise<string> {
 			// SCAM PATTERN 1: Vanity address (lots of zeros or repeated patterns)
 			const addressLower = walletAddress.toLowerCase();
 			const zeroCount = (addressLower.match(/0/g) || []).length;
-			if (zeroCount >= 8 || /(.)\1{5,}/.test(addressLower)) {
+			if (zeroCount >= 8 || /(.)\{5,}/.test(addressLower)) {
 				highRiskPatterns.push(
-					"⚠️ VANITY ADDRESS DETECTED: Address contains suspicious patterns (excessive zeros or repeated characters). Often used by scammers to impersonate legitimate contracts."
+					"VANITY ADDRESS DETECTED: Address contains suspicious patterns (excessive zeros or repeated characters). Often used by scammers to impersonate legitimate contracts."
 				);
 				riskIndicators.exploitContractInteraction = true;
 			}
@@ -164,7 +164,7 @@ export async function analyzeWallet(walletAddress: string): Promise<string> {
 			if (daysOld < 7 && transactions.length > 50) {
 				riskIndicators.newWalletPattern = true;
 				highRiskPatterns.push(
-					"⚠️ NEW WALLET BURST ACTIVITY: High transaction volume within 7 days of creation. Common in pump-and-dump or rug pull schemes.",
+					"NEW WALLET BURST ACTIVITY: High transaction volume within 7 days of creation. Common in pump-and-dump or rug pull schemes.",
 				);
 			}
 
@@ -172,7 +172,7 @@ export async function analyzeWallet(walletAddress: string): Promise<string> {
 			if (totalIn > 100 || totalOut > 100) {
 				riskIndicators.highVolumeSpike = true;
 				highRiskPatterns.push(
-					`⚠️ HIGH VOLUME SPIKE: ${totalIn.toFixed(2)} ETH received, ${totalOut.toFixed(2)} ETH sent. Potential money laundering or fraud operation.`,
+					`HIGH VOLUME SPIKE: ${totalIn.toFixed(2)} ETH received, ${totalOut.toFixed(2)} ETH sent. Potential money laundering or fraud operation.`,
 				);
 			}
 
@@ -184,7 +184,7 @@ export async function analyzeWallet(walletAddress: string): Promise<string> {
 			});
 			if (smallIncoming.length > 20) {
 				highRiskPatterns.push(
-					`⚠️ DUST ATTACK PATTERN: ${smallIncoming.length} tiny incoming transactions detected. Often used to track wallets or execute airdrop scams.`
+					`DUST ATTACK PATTERN: ${smallIncoming.length} tiny incoming transactions detected. Often used to track wallets or execute airdrop scams.`
 				);
 			}
 
@@ -198,14 +198,14 @@ export async function analyzeWallet(walletAddress: string): Promise<string> {
 			});
 			if (rapidDrains.length > 5) {
 				highRiskPatterns.push(
-					`⚠️ RAPID DRAIN PATTERN: ${rapidDrains.length} transactions sent within minutes of receiving funds. Classic phishing/scam wallet behavior.`
+					`RAPID DRAIN PATTERN: ${rapidDrains.length} transactions sent within minutes of receiving funds. Classic phishing/scam wallet behavior.`
 				);
 			}
 
 			// SCAM PATTERN 6: One-way flow (only receiving or only sending)
 			if (totalIn > 0.1 && totalOut === 0) {
 				highRiskPatterns.push(
-					"⚠️ HONEYPOT PATTERN: Wallet only receives funds, never sends. Possible scam accumulation address."
+					"HONEYPOT PATTERN: Wallet only receives funds, never sends. Possible scam accumulation address."
 				);
 			}
 		}
@@ -270,6 +270,18 @@ export async function analyzeWallet(walletAddress: string): Promise<string> {
 		const conclusion = generateDetailedConclusion(evidence, scamReports);
 		evidence.conclusion = conclusion;
 
+		// Update target node risk level based on risk score
+		const targetNode = nodes.find(n => n.id === walletAddress.toLowerCase());
+		if (targetNode) {
+			if (conclusion.riskScore >= 70) {
+				targetNode.riskLevel = "high";
+			} else if (conclusion.riskScore >= 40) {
+				targetNode.riskLevel = "medium";
+			} else {
+				targetNode.riskLevel = "low";
+			}
+		}
+
 		console.log(
 			`[Evidence Agent] Analysis complete. Risk Score: ${conclusion.riskScore}/100, Verdict: ${conclusion.verdict}`,
 		);
@@ -292,7 +304,7 @@ function generateDetailedConclusion(
 	const reasoningParts: string[] = [];
 
 	// === SECTION 1: Transaction Pattern Analysis ===
-	let patternAnalysis = "**TRANSACTION PATTERN ANALYSIS:**\n\n";
+	let patternAnalysis = "TRANSACTION PATTERN ANALYSIS:\n\n";
 	
 	if (evidence.txCount === 0) {
 		patternAnalysis += "This wallet has no recorded transaction history, making it impossible to assess behavioral patterns. ";
@@ -335,7 +347,7 @@ function generateDetailedConclusion(
 	reasoningParts.push(patternAnalysis);
 
 	// === SECTION 2: Risk Factor Assessment ===
-	let riskFactorAnalysis = "\n**RISK FACTOR ASSESSMENT:**\n\n";
+	let riskFactorAnalysis = "\nRISK FACTOR ASSESSMENT:\n\n";
 	const riskFactors = evidence.highRiskPatterns;
 
 	if (riskFactors.length === 0) {
@@ -369,10 +381,10 @@ function generateDetailedConclusion(
 	reasoningParts.push(riskFactorAnalysis);
 
 	// === SECTION 3: Web Reputation & Community Intelligence ===
-	let webReputationAnalysis = "\n**WEB REPUTATION & COMMUNITY INTELLIGENCE:**\n\n";
+	let webReputationAnalysis = "\nWEB REPUTATION & COMMUNITY INTELLIGENCE:\n\n";
 
 	if (scamReports > 0) {
-		webReputationAnalysis += `🚨 CRITICAL: ${scamReports} independent scam report(s) found in public databases. `;
+		webReputationAnalysis += `CRITICAL: ${scamReports} independent scam report(s) found in public databases. `;
 		webReputationAnalysis += evidence.webReputation?.summary || "";
 		webReputationAnalysis += "\n\nCommunity-reported scams represent verified incidents where this wallet was involved in fraudulent activity. Multiple independent reports significantly increase confidence in malicious intent. ";
 		riskScore += 40; // Heavy penalty for confirmed scam reports
@@ -384,7 +396,7 @@ function generateDetailedConclusion(
 	reasoningParts.push(webReputationAnalysis);
 
 	// === SECTION 4: Final Verdict & Confidence ===
-	let finalVerdict = "\n**FINAL VERDICT:**\n\n";
+	let finalVerdict = "\nFINAL VERDICT:\n\n";
 	
 	// Cap risk score at 100
 	riskScore = Math.min(100, riskScore);
@@ -395,22 +407,22 @@ function generateDetailedConclusion(
 		verdict = "HIGH RISK - LIKELY SCAM";
 		finalVerdict += "Based on the cumulative evidence - behavioral anomalies, suspicious transaction patterns, and community reports - this wallet exhibits characteristics strongly associated with fraudulent operations. ";
 		finalVerdict += "The risk score of " + riskScore + "/100 places it in the high-risk category. ";
-		finalVerdict += "**RECOMMENDATION: Avoid all interactions with this address. Do not send funds or approve token transactions.**";
+		finalVerdict += "RECOMMENDATION: Avoid all interactions with this address. Do not send funds or approve token transactions.";
 	} else if (riskScore >= 40) {
 		verdict = "MODERATE RISK - SUSPICIOUS";
 		finalVerdict += "The wallet demonstrates several concerning patterns that warrant caution. ";
 		finalVerdict += "While not conclusively fraudulent, the risk score of " + riskScore + "/100 suggests suspicious activity that deviates from typical legitimate wallet behavior. ";
-		finalVerdict += "**RECOMMENDATION: Exercise extreme caution. Conduct additional due diligence before any interactions.**";
+		finalVerdict += "RECOMMENDATION: Exercise extreme caution. Conduct additional due diligence before any interactions.";
 	} else if (riskScore >= 20) {
 		verdict = "LOW RISK - APPEARS LEGITIMATE";
 		finalVerdict += "The analysis reveals minimal risk indicators. ";
 		finalVerdict += "With a risk score of " + riskScore + "/100, the wallet's behavior aligns more closely with legitimate use patterns. ";
-		finalVerdict += "**RECOMMENDATION: Standard caution advised. Always verify contract interactions and use small test transactions.**";
+		finalVerdict += "RECOMMENDATION: Standard caution advised. Always verify contract interactions and use small test transactions.";
 	} else {
 		verdict = "INCONCLUSIVE";
 		finalVerdict += "Insufficient data or ambiguous patterns prevent a definitive risk assessment. ";
 		finalVerdict += "The risk score of " + riskScore + "/100 reflects limited observable indicators. ";
-		finalVerdict += "**RECOMMENDATION: Gather additional information before making decisions. Monitor for emerging patterns.**";
+		finalVerdict += "RECOMMENDATION: Gather additional information before making decisions. Monitor for emerging patterns.";
 	}
 
 	reasoningParts.push(finalVerdict);
