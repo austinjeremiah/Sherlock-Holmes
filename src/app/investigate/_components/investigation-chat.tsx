@@ -217,16 +217,13 @@ export const InvestigationChat = () => {
 			<div className="border-b border-gray-700 bg-black">
 				<div className="px-6 py-6">
 					<div className="flex items-center justify-between max-w-[1800px] mx-auto">
-						<div className="flex items-center gap-3">
-							<Bot className="w-8 h-8 text-gray-300" strokeWidth={1.5} />
-							<div>
-								<h1 className="text-2xl font-serif text-gray-100 tracking-wide">
-									SHERLOCK HOLMES
-								</h1>
-								<p className="text-xs text-gray-400 uppercase tracking-widest mt-1">
-									Blockchain Forensics Division
-								</p>
-							</div>
+						<div>
+							<h1 className="text-2xl font-serif text-gray-100 tracking-wide">
+								SHERLOCK HOLMES
+							</h1>
+							<p className="text-xs text-gray-400 uppercase tracking-widest mt-1">
+								Blockchain Forensics Division
+							</p>
 						</div>
 						<ConnectButton />
 					</div>
@@ -249,14 +246,6 @@ export const InvestigationChat = () => {
 									message.role === "user" ? "justify-end" : "justify-start"
 								}`}
 							>
-								{message.role === "agent" && (
-									<div className="flex-shrink-0 mt-1">
-										<div className="w-8 h-8 rounded-full border border-gray-600 bg-black flex items-center justify-center">
-											<Bot className="w-4 h-4 text-gray-300" strokeWidth={1.5} />
-										</div>
-									</div>
-								)}
-
 								<div
 									className={`max-w-[90%] ${
 										message.role === "user"
@@ -291,25 +280,12 @@ export const InvestigationChat = () => {
 										{message.content}
 									</p>
 								</div>
-
-								{message.role === "user" && (
-									<div className="flex-shrink-0 mt-1">
-										<div className="w-8 h-8 rounded-full border border-gray-600 bg-gray-800 flex items-center justify-center">
-											<User className="w-4 h-4 text-gray-300" strokeWidth={1.5} />
-										</div>
-									</div>
-								)}
 							</div>
 						);
 					})}
 
 					{isLoading && messages[messages.length - 1]?.role === "user" && (
 						<div className="flex gap-4 justify-start">
-							<div className="flex-shrink-0 mt-1">
-								<div className="w-8 h-8 rounded-full border border-gray-600 bg-black flex items-center justify-center">
-									<Bot className="w-4 h-4 text-gray-300" strokeWidth={1.5} />
-								</div>
-							</div>
 							<div className="bg-transparent rounded-lg px-4 py-3">
 								<div className="flex gap-1">
 									<span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
@@ -375,19 +351,19 @@ export const InvestigationChat = () => {
 							</div>
 						)}
 						
-						<form onSubmit={handleSubmit} className="flex gap-3">
+						<form onSubmit={handleSubmit} className="flex gap-3 items-end">
 							<Textarea
 								value={input}
 								onChange={(e) => setInput(e.target.value)}
 								onKeyDown={handleKeyDown}
 								placeholder="Type your inquiry here..."
-								className="flex-1 min-h-[60px] max-h-[200px] resize-none bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 font-mono text-sm focus-visible:ring-gray-600"
+								className="flex-1 min-h-[50px] max-h-[200px] resize-none bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 font-mono text-sm focus-visible:ring-gray-600"
 								disabled={isLoading}
 							/>
 							<Button
 								type="submit"
 								disabled={!input.trim() || isLoading}
-								className="self-end px-6 bg-white hover:bg-gray-200 text-black border border-gray-300 font-mono text-sm"
+								className="h-[50px] px-8 bg-white hover:bg-gray-200 text-black border border-gray-300 font-mono text-sm font-semibold"
 							>
 								Send
 							</Button>
