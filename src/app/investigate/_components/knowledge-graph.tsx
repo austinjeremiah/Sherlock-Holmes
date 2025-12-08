@@ -109,7 +109,7 @@ export const KnowledgeGraph = ({ nodes, edges }: KnowledgeGraphProps) => {
 		}
 	}, []);
 
-	const getNodeColor = (node: GraphNode) => {
+	const getNodeColor = (node: any) => {
 		if (node.type === "target") return "#ff4444"; // Red center
 		if (node.type === "mixer") return "#ff0000"; // Red
 		if (node.type === "cex") return "#4169e1"; // Royal Blue
@@ -117,7 +117,7 @@ export const KnowledgeGraph = ({ nodes, edges }: KnowledgeGraphProps) => {
 		return "#708090"; // Slate Gray
 	};
 
-	const getNodeSize = (node: GraphNode) => {
+	const getNodeSize = (node: any) => {
 		if (node.type === "target") return 10; // Bigger target node
 		if (node.type === "mixer") return 8;
 		if (node.type === "cex") return 8;
