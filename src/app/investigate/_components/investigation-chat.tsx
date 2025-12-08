@@ -44,8 +44,6 @@ export const InvestigationChat = () => {
 	]);
 	const [isLoading, setIsLoading] = useState(false);
 	const chatRef = useRef<HTMLDivElement>(null);
-	const [displayedText, setDisplayedText] = useState("");
-	const [isTyping, setIsTyping] = useState(false);
 
 	const generateId = () =>
 		crypto.randomUUID?.() ?? Math.random().toString(36).substring(2, 10);
@@ -54,27 +52,6 @@ export const InvestigationChat = () => {
 	useEffect(() => {
 		if (chatRef.current) {
 			chatRef.current.scrollTop = chatRef.current.scrollHeight;
-		}
-	}, [messages, displayedText]);
-
-	// Typewriter effect for the last agent message
-	useEffect(() => {
-		const lastMessage = messages[messages.length - 1];
-		if (lastMessage?.role === "agent" && lastMessage.id !== "welcome") {
-			setIsTyping(true);
-			setDisplayedText("");
-			let index = 0;
-			const interval = setInterval(() => {
-				if (index < lastMessage.content.length) {
-					setDisplayedText((prev) => prev + lastMessage.content[index]);
-					index++;
-				} else {
-					clearInterval(interval);
-					setIsTyping(false);
-				}
-			}, 30); // Typewriter speed
-
-			return () => clearInterval(interval);
 		}
 	}, [messages]);
 
@@ -148,12 +125,6 @@ export const InvestigationChat = () => {
 			>
 				<div className="container mx-auto max-w-4xl">
 					{messages.map((message, index) => {
-						const isLastAgentMessage =
-							index === messages.length - 1 && message.role === "agent";
-						const displayContent = isLastAgentMessage
-							? displayedText
-							: message.content;
-
 						return (
 							<div
 								key={message.id}
@@ -181,14 +152,11 @@ export const InvestigationChat = () => {
 											message.role === "user" ? "text-gray-100" : "text-gray-300"
 										} whitespace-pre-wrap`}
 									>
-										{displayContent}
-										{isLastAgentMessage && isTyping && (
-											<span className="inline-block w-2 h-4 bg-gray-400 ml-1 animate-pulse" />
-										)}
+										{message.content}
 									</p>
 									
 									{/* Render knowledge graph if available */}
-									{message.graph && !isTyping && (
+									{message.graph && (
 										<div className="mt-4">
 											<KnowledgeGraph 
 												nodes={message.graph.nodes} 

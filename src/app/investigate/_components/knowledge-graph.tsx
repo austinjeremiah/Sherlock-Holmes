@@ -103,9 +103,9 @@ export const KnowledgeGraph = ({ nodes, edges }: KnowledgeGraphProps) => {
 
 	useEffect(() => {
 		if (graphRef.current) {
-			// Radial layout - target in center, counterparties around it
-			graphRef.current.d3Force("charge").strength(-1000);
-			graphRef.current.d3Force("link").distance(200);
+			// Extreme spreading for clean layout
+			graphRef.current.d3Force("charge").strength(-8000);
+			graphRef.current.d3Force("link").distance(800);
 		}
 	}, []);
 
@@ -118,10 +118,10 @@ export const KnowledgeGraph = ({ nodes, edges }: KnowledgeGraphProps) => {
 	};
 
 	const getNodeSize = (node: GraphNode) => {
-		if (node.type === "target") return 20; // Bigger center
-		if (node.type === "mixer") return 12;
-		if (node.type === "cex") return 12;
-		return 10;
+		if (node.type === "target") return 10; // Same size as others
+		if (node.type === "mixer") return 8;
+		if (node.type === "cex") return 8;
+		return 6;
 	};
 
 	const getLinkColor = (edge: any) => {
@@ -136,7 +136,7 @@ export const KnowledgeGraph = ({ nodes, edges }: KnowledgeGraphProps) => {
 
 	return (
 		<div className="relative w-full">
-			<div className="w-full h-[600px] bg-white border border-gray-300 rounded-lg overflow-hidden">
+			<div className="w-full h-[1000px] bg-white border border-gray-300 rounded-lg overflow-hidden">
 				<ForceGraph2D
 					ref={graphRef}
 					graphData={{ nodes, links: edges }}
@@ -146,19 +146,22 @@ export const KnowledgeGraph = ({ nodes, edges }: KnowledgeGraphProps) => {
 						return `${details.type.toUpperCase()}\n${details.txCount} txs | ${details.ethVolume} ETH`;
 					}}
 					nodeColor={getNodeColor}
-					nodeRelSize={10}
+					nodeRelSize={5}
 					nodeVal={(node: any) => getNodeSize(node)}
-					linkColor={() => "#555555"}
-					linkWidth={1}
-					linkDirectionalArrowLength={8}
+					linkColor={() => "#dddddd"}
+					linkWidth={0.5}
+					linkDirectionalArrowLength={6}
 					linkDirectionalArrowRelPos={1}
 					linkCurvature={0}
-					linkDirectionalParticles={2}
-					linkDirectionalParticleWidth={2}
+					linkDirectionalParticles={0}
 					backgroundColor="#ffffff"
+					d3AlphaDecay={0.005}
+					d3VelocityDecay={0.1}
+					cooldownTime={10000}
+					warmupTicks={500}
 					nodeCanvasObject={(node: any, ctx, globalScale) => {
-						const label = node.id.substring(0, 6) + "..." + node.id.substring(node.id.length - 4);
-						const fontSize = 10 / globalScale;
+						const label = node.id.substring(0, 4) + "..." + node.id.substring(node.id.length - 3);
+						const fontSize = 8 / globalScale;
 						ctx.font = `${fontSize}px Arial`;
 						ctx.textAlign = "center";
 						ctx.textBaseline = "middle";
@@ -168,20 +171,18 @@ export const KnowledgeGraph = ({ nodes, edges }: KnowledgeGraphProps) => {
 						ctx.arc(node.x, node.y, getNodeSize(node), 0, 2 * Math.PI, false);
 						ctx.fillStyle = getNodeColor(node);
 						ctx.fill();
-						ctx.strokeStyle = "#ffffff";
-						ctx.lineWidth = 2 / globalScale;
+						ctx.strokeStyle = "#333333";
+						ctx.lineWidth = 1 / globalScale;
 						ctx.stroke();
 
 						// Draw label below node
 						ctx.fillStyle = "#000000";
-						ctx.fillText(label, node.x, node.y + getNodeSize(node) + 15);
+						ctx.fillText(label, node.x, node.y + getNodeSize(node) + 12);
 					}}
 					onNodeClick={handleNodeClick}
 					enableNodeDrag={true}
 					enableZoomInteraction={true}
 					enablePanInteraction={true}
-					cooldownTime={3000}
-					warmupTicks={100}
 				/>
 			</div>
 
