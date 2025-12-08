@@ -49,6 +49,7 @@ export const InvestigationChat = () => {
 	]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [paymentStatus, setPaymentStatus] = useState<'idle' | 'paying' | 'investigating'>('idle');
+	const [currentGraph, setCurrentGraph] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] } | null>(null);
 	const chatRef = useRef<HTMLDivElement>(null);
 
 	// Wallet connection
@@ -167,12 +168,16 @@ export const InvestigationChat = () => {
 									...updated[msgIndex],
 									content: step.content,
 									isStreaming: false,
-									graph: step.step === "evidence" ? result.graph : undefined,
 								};
 							}
 						});
 						return updated;
 					});
+					
+					// Set graph in right panel
+					if (result.graph) {
+						setCurrentGraph(result.graph);
+					}
 				}
 			} else {
 				// Regular conversation - no payment needed
@@ -210,8 +215,8 @@ export const InvestigationChat = () => {
 		<div className="flex flex-col h-screen bg-[#0a0a0a]">
 			{/* Header - 1950s Noir Style with Connect Button */}
 			<div className="border-b border-gray-700 bg-black">
-				<div className="container mx-auto px-4 py-6">
-					<div className="flex items-center justify-between">
+				<div className="px-6 py-6">
+					<div className="flex items-center justify-between max-w-[1800px] mx-auto">
 						<div className="flex items-center gap-3">
 							<Bot className="w-8 h-8 text-gray-300" strokeWidth={1.5} />
 							<div>
@@ -228,12 +233,14 @@ export const InvestigationChat = () => {
 				</div>
 			</div>
 
-			{/* Chat Messages */}
-			<div
-				ref={chatRef}
-				className="flex-1 overflow-y-auto px-4 py-6 space-y-6 bg-[#0a0a0a]"
-			>
-				<div className="container mx-auto max-w-4xl">
+			{/* Split Screen Layout */}
+			<div className="flex-1 overflow-hidden flex">
+				{/* Left: Chat Messages */}
+				<div
+					ref={chatRef}
+					className="flex-1 overflow-y-auto px-6 py-6 space-y-6 bg-[#0a0a0a]"
+				>
+					<div className="max-w-4xl mx-auto">
 					{messages.map((message, index) => {
 						return (
 							<div
@@ -283,16 +290,6 @@ export const InvestigationChat = () => {
 									>
 										{message.content}
 									</p>
-									
-									{/* Render knowledge graph if available */}
-									{message.graph && (
-										<div className="mt-4">
-											<KnowledgeGraph 
-												nodes={message.graph.nodes} 
-												edges={message.graph.edges} 
-											/>
-										</div>
-									)}
 								</div>
 
 								{message.role === "user" && (
@@ -322,50 +319,86 @@ export const InvestigationChat = () => {
 							</div>
 						</div>
 					)}
+					</div>
+				</div>
+
+				{/* Right: Knowledge Graph Panel */}
+				<div className="flex-1 border-l border-gray-700 bg-black/50 overflow-y-auto">
+					{currentGraph && currentGraph.nodes.length > 0 ? (
+						<div className="p-6">
+							<div className="border-b border-gray-700 pb-3 mb-4">
+								<h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+									Network Analysis
+								</h2>
+							</div>
+							<KnowledgeGraph 
+								nodes={currentGraph.nodes} 
+								edges={currentGraph.edges} 
+							/>
+						</div>
+					) : (
+						<div className="flex items-center justify-center h-full p-6">
+							<div className="text-center">
+								<Bot className="w-16 h-16 text-gray-700 mx-auto mb-4" strokeWidth={1} />
+								<p className="text-sm text-gray-600 font-mono">
+									Knowledge graph will appear here
+								</p>
+								<p className="text-xs text-gray-700 font-mono mt-2">
+									Investigate a wallet address to view network connections
+								</p>
+							</div>
+						</div>
+					)}
 				</div>
 			</div>
 
-			{/* Input Area - Typewriter Style */}
+			{/* Input Area - Typewriter Style - Left Side Only */}
 			<div className="border-t border-gray-700 bg-black">
-				<div className="container mx-auto max-w-4xl px-4 py-4">
-					{/* Payment status indicator */}
-					{!isConnected && (
-						<div className="mb-3 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
-							<p className="text-xs text-yellow-400 font-mono">
-								⚠️ Connect wallet to investigate blockchain addresses (requires 0.0001 ETH payment)
-							</p>
-						</div>
-					)}
+				<div className="flex">
+					{/* Left side input (matches chat area) */}
+					<div className="flex-1 px-6 py-4">
+						{/* Payment status indicator */}
+						{!isConnected && (
+							<div className="mb-3 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+								<p className="text-xs text-yellow-400 font-mono">
+									⚠️ Connect wallet to investigate blockchain addresses (requires 0.0001 ETH payment)
+								</p>
+							</div>
+						)}
+						
+						{paymentStatus !== 'idle' && (
+							<div className="mb-3 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+								<p className="text-xs text-blue-400 font-mono">
+									{paymentStatus === 'paying' && `💸 x402: Waiting for payment approval...`}
+									{paymentStatus === 'investigating' && `🔍 x402: Payment confirmed, investigating...`}
+								</p>
+							</div>
+						)}
+						
+						<form onSubmit={handleSubmit} className="flex gap-3">
+							<Textarea
+								value={input}
+								onChange={(e) => setInput(e.target.value)}
+								onKeyDown={handleKeyDown}
+								placeholder="Type your inquiry here..."
+								className="flex-1 min-h-[60px] max-h-[200px] resize-none bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 font-mono text-sm focus-visible:ring-gray-600"
+								disabled={isLoading}
+							/>
+							<Button
+								type="submit"
+								disabled={!input.trim() || isLoading}
+								className="self-end px-6 bg-white hover:bg-gray-200 text-black border border-gray-300 font-mono text-sm"
+							>
+								Send
+							</Button>
+						</form>
+						<p className="text-xs text-gray-600 mt-2 font-mono text-center">
+							Press Enter to send • Shift+Enter for new line
+						</p>
+					</div>
 					
-					{paymentStatus !== 'idle' && (
-						<div className="mb-3 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-							<p className="text-xs text-blue-400 font-mono">
-								{paymentStatus === 'paying' && `💸 x402: Waiting for payment approval...`}
-								{paymentStatus === 'investigating' && `🔍 x402: Payment confirmed, investigating...`}
-							</p>
-						</div>
-					)}
-					
-					<form onSubmit={handleSubmit} className="flex gap-3">
-						<Textarea
-							value={input}
-							onChange={(e) => setInput(e.target.value)}
-							onKeyDown={handleKeyDown}
-							placeholder="Type your inquiry here..."
-							className="flex-1 min-h-[60px] max-h-[200px] resize-none bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 font-mono text-sm focus-visible:ring-gray-600"
-							disabled={isLoading}
-						/>
-						<Button
-							type="submit"
-							disabled={!input.trim() || isLoading}
-							className="self-end px-6 bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-600"
-						>
-							<Send className="w-4 h-4" />
-						</Button>
-					</form>
-					<p className="text-xs text-gray-600 mt-2 font-mono text-center">
-						Press Enter to send • Shift+Enter for new line
-					</p>
+					{/* Right side empty (matches graph area) */}
+					<div className="flex-1 border-l border-gray-700 bg-black/50"></div>
 				</div>
 			</div>
 		</div>
