@@ -1,26 +1,45 @@
-import { AgentBuilder } from "@iqai/adk";
-import { env } from "../../env";
+import { agent as sherlockAgent } from "./sherlock/agent";
+import { agent as evidenceAgent } from "./evidence/agent";
+import { agent as prosecutorAgent } from "./prosecutor/agent";
+import { agent as defenderAgent } from "./defender/agent";
+import { agent as judgeAgent } from "./judge/agent";
 
 /**
- * Creates and configures the root agent for Sherlock Holmes.
+ * Gets the Sherlock Holmes agent instance.
+ * Uses ADK-TS framework for the hackathon!
  */
-export const getRootAgent = async () => {
-	const rootAgent = AgentBuilder.create("sherlock_agent")
-		.withDescription(
-			"Sherlock Holmes - Master detective specializing in blockchain forensics.",
-		)
-		.withInstruction(
-			`You are Sherlock Holmes, the legendary consulting detective, now specialized in blockchain forensics.
+export async function getRootAgent() {
+	return await sherlockAgent();
+}
 
-When a user provides a wallet address (starts with 0x), use your analytical skills to investigate it.
-For casual conversation, respond in a classic, deductive manner - analytical, precise, and slightly Victorian in tone.
+/**
+ * Gets the Evidence Agent instance.
+ * Uses ADK-TS framework for the hackathon!
+ */
+export async function getEvidenceAgent() {
+	return await evidenceAgent();
+}
 
-Always respond with complete, grammatically correct sentences.`,
-		)
-		.withModel(env.LLM_MODEL)
-		.build();
+/**
+ * Gets the Prosecutor Agent instance.
+ * Uses ADK-TS framework for the hackathon!
+ */
+export async function getProsecutorAgent() {
+	return await prosecutorAgent();
+}
 
-	const { runner, session, sessionService } = await rootAgent;
+/**
+ * Gets the Defender Agent instance.
+ * Uses ADK-TS framework for the hackathon!
+ */
+export async function getDefenderAgent() {
+	return await defenderAgent();
+}
 
-	return { runner, session, sessionService };
-};
+/**
+ * Gets the Judge Agent instance.
+ * Uses ADK-TS framework for the hackathon!
+ */
+export async function getJudgeAgent() {
+	return await judgeAgent();
+}

@@ -30,6 +30,8 @@ type Message = {
 		nodes: GraphNode[];
 		edges: GraphEdge[];
 	};
+	agentStep?: "evidence" | "prosecutor" | "defender" | "judge";
+	isStreaming?: boolean;
 };
 
 export const InvestigationChat = () => {
@@ -66,19 +68,81 @@ export const InvestigationChat = () => {
 		};
 
 		setMessages((prev) => [...prev, userMessage]);
+		const userInput = input;
 		setInput("");
 		setIsLoading(true);
 
 		try {
-			const result: SherlockResponse = await askSherlock(input);
-			const agentMessage: Message = {
-				id: generateId(),
-				role: "agent",
-				content: result.text || "The case grows more curious...",
-				graph: result.graph,
-			};
+			// Check if it's a wallet address - use streaming court system
+			const walletMatch = userInput.match(/0x[a-fA-F0-9]{40}/);
+			
+			if (walletMatch) {
+				// Create placeholder messages for each agent
+				const evidenceMsg: Message = {
+					id: generateId(),
+					role: "agent",
+					content: "🔍 EVIDENCE AGENT INVESTIGATING...\n\nAnalyzing blockchain transactions...",
+					agentStep: "evidence",
+					isStreaming: true,
+				};
+				const prosecutorMsg: Message = {
+					id: generateId(),
+					role: "agent",
+					content: "",
+					agentStep: "prosecutor",
+					isStreaming: true,
+				};
+				const defenderMsg: Message = {
+					id: generateId(),
+					role: "agent",
+					content: "",
+					agentStep: "defender",
+					isStreaming: true,
+				};
+				const judgeMsg: Message = {
+					id: generateId(),
+					role: "agent",
+					content: "",
+					agentStep: "judge",
+					isStreaming: true,
+				};
 
-			setMessages((prev) => [...prev, agentMessage]);
+				setMessages((prev) => [...prev, evidenceMsg, prosecutorMsg, defenderMsg, judgeMsg]);
+
+				// Get the full response
+				const result: SherlockResponse = await askSherlock(userInput);
+				
+				// Update each agent's message with actual content
+				if (result.courtSteps) {
+					setMessages((prev) => {
+						const updated = [...prev];
+						result.courtSteps?.forEach((step) => {
+							const msgIndex = updated.findIndex(
+								(m) => m.agentStep === step.step && m.isStreaming
+							);
+							if (msgIndex !== -1) {
+								updated[msgIndex] = {
+									...updated[msgIndex],
+									content: step.content,
+									isStreaming: false,
+									graph: step.step === "evidence" ? result.graph : undefined,
+								};
+							}
+						});
+						return updated;
+					});
+				}
+			} else {
+				// Regular conversation
+				const result: SherlockResponse = await askSherlock(userInput);
+				const agentMessage: Message = {
+					id: generateId(),
+					role: "agent",
+					content: result.text || "The case grows more curious...",
+					graph: result.graph,
+				};
+				setMessages((prev) => [...prev, agentMessage]);
+			}
 		} catch (error) {
 			console.error("Error:", error);
 			const errorMessage: Message = {
@@ -147,6 +211,25 @@ export const InvestigationChat = () => {
 											: "bg-transparent"
 									} rounded-lg px-4 py-3`}
 								>
+									{/* Agent step indicator */}
+									{message.agentStep && (
+										<div className="mb-2 flex items-center gap-2">
+											<span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+												{message.agentStep === "evidence" && "🔍 Evidence Agent"}
+												{message.agentStep === "prosecutor" && "⚖️ Prosecutor"}
+												{message.agentStep === "defender" && "🛡️ Defender"}
+												{message.agentStep === "judge" && "⚖️ Judge"}
+											</span>
+											{message.isStreaming && (
+												<div className="flex gap-1">
+													<span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+													<span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse [animation-delay:0.2s]" />
+													<span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse [animation-delay:0.4s]" />
+												</div>
+											)}
+										</div>
+									)}
+									
 									<p
 										className={`text-sm leading-relaxed font-mono ${
 											message.role === "user" ? "text-gray-100" : "text-gray-300"

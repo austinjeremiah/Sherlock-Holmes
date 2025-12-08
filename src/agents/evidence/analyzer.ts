@@ -2,18 +2,18 @@ import type {
 	EvidenceSummary,
 	GraphEdge,
 	GraphNode,
-} from "./types";
+} from "../types";
 import {
 	fetchTokenTransfers,
 	fetchWalletBalance,
 	fetchWalletTransactions,
 	isKnownExchange,
 	isKnownMixer,
-} from "./utils/etherscan";
+} from "../utils/etherscan";
 import {
 	searchWalletReputation,
 	generateReputationSummary,
-} from "./utils/webSearch";
+} from "../utils/webSearch";
 
 /**
  * Simple function to analyze a wallet and return evidence

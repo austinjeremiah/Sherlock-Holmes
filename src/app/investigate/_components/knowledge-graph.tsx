@@ -118,7 +118,7 @@ export const KnowledgeGraph = ({ nodes, edges }: KnowledgeGraphProps) => {
 	};
 
 	const getNodeSize = (node: GraphNode) => {
-		if (node.type === "target") return 10; // Same size as others
+		if (node.type === "target") return 10; // Bigger target node
 		if (node.type === "mixer") return 8;
 		if (node.type === "cex") return 8;
 		return 6;
