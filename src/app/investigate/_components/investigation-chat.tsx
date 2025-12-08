@@ -4,6 +4,7 @@ import { Bot, Send, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { askSherlock, SherlockResponse } from "../_actions";
 import { KnowledgeGraph } from "./knowledge-graph";
 
@@ -165,19 +166,22 @@ export const InvestigationChat = () => {
 
 	return (
 		<div className="flex flex-col h-screen bg-[#0a0a0a]">
-			{/* Header - 1950s Noir Style */}
+			{/* Header - 1950s Noir Style with Connect Button */}
 			<div className="border-b border-gray-700 bg-black">
 				<div className="container mx-auto px-4 py-6">
-					<div className="flex items-center gap-3">
-						<Bot className="w-8 h-8 text-gray-300" strokeWidth={1.5} />
-						<div>
-							<h1 className="text-2xl font-serif text-gray-100 tracking-wide">
-								SHERLOCK HOLMES
-							</h1>
-							<p className="text-xs text-gray-400 uppercase tracking-widest mt-1">
-								Blockchain Forensics Division
-							</p>
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<Bot className="w-8 h-8 text-gray-300" strokeWidth={1.5} />
+							<div>
+								<h1 className="text-2xl font-serif text-gray-100 tracking-wide">
+									SHERLOCK HOLMES
+								</h1>
+								<p className="text-xs text-gray-400 uppercase tracking-widest mt-1">
+									Blockchain Forensics Division
+								</p>
+							</div>
 						</div>
+						<ConnectButton />
 					</div>
 				</div>
 			</div>
