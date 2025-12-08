@@ -5,8 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { askSherlock, SherlockResponse } from "../_actions";
+import { useAccount, useWalletClient } from "wagmi";
 import { KnowledgeGraph } from "./knowledge-graph";
+import { investigateWithPayment } from "@/lib/x402-client";
+import type { SherlockResponse } from "../_actions";
 
 interface GraphNode {
 	id: string;
@@ -46,7 +48,12 @@ export const InvestigationChat = () => {
 		},
 	]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [paymentStatus, setPaymentStatus] = useState<'idle' | 'paying' | 'investigating'>('idle');
 	const chatRef = useRef<HTMLDivElement>(null);
+
+	// Wallet connection
+	const { address, isConnected } = useAccount();
+	const { data: walletClient } = useWalletClient();
 
 	const generateId = () =>
 		crypto.randomUUID?.() ?? Math.random().toString(36).substring(2, 10);
@@ -74,10 +81,47 @@ export const InvestigationChat = () => {
 		setIsLoading(true);
 
 		try {
-			// Check if it's a wallet address - use streaming court system
+			// Check if it's a wallet address - requires x402 payment
 			const walletMatch = userInput.match(/0x[a-fA-F0-9]{40}/);
 			
 			if (walletMatch) {
+				// Check wallet connection
+				if (!isConnected || !walletClient) {
+					const errorMsg: Message = {
+						id: generateId(),
+						role: "agent",
+						content: "⚠️ Please connect your wallet to proceed with the investigation.",
+					};
+					setMessages((prev) => [...prev, errorMsg]);
+					setIsLoading(false);
+					return;
+				}
+
+				setPaymentStatus('paying');
+				
+				const paymentMsg: Message = {
+					id: generateId(),
+					role: "agent",
+					content: `💰 Initiating x402 payment protocol...\n\nInvestigation cost: 0.0001 ETH\n\nPlease approve the payment when prompted...`,
+				};
+				setMessages((prev) => [...prev, paymentMsg]);
+
+				// Use x402 client - automatically handles payment + retry
+				setPaymentStatus('investigating');
+				const result: SherlockResponse = await investigateWithPayment(
+					walletMatch[0],
+					walletClient
+				);
+
+				setPaymentStatus('idle');
+				
+				const successMsg: Message = {
+					id: generateId(),
+					role: "agent",
+					content: "✅ Payment confirmed via x402 protocol. Investigation complete!",
+				};
+				setMessages((prev) => [...prev, successMsg]);
+
 				// Create placeholder messages for each agent
 				const evidenceMsg: Message = {
 					id: generateId(),
@@ -110,9 +154,6 @@ export const InvestigationChat = () => {
 
 				setMessages((prev) => [...prev, evidenceMsg, prosecutorMsg, defenderMsg, judgeMsg]);
 
-				// Get the full response
-				const result: SherlockResponse = await askSherlock(userInput);
-				
 				// Update each agent's message with actual content
 				if (result.courtSteps) {
 					setMessages((prev) => {
@@ -134,7 +175,8 @@ export const InvestigationChat = () => {
 					});
 				}
 			} else {
-				// Regular conversation
+				// Regular conversation - no payment needed
+				const { askSherlock } = await import("../_actions");
 				const result: SherlockResponse = await askSherlock(userInput);
 				const agentMessage: Message = {
 					id: generateId(),
@@ -286,6 +328,24 @@ export const InvestigationChat = () => {
 			{/* Input Area - Typewriter Style */}
 			<div className="border-t border-gray-700 bg-black">
 				<div className="container mx-auto max-w-4xl px-4 py-4">
+					{/* Payment status indicator */}
+					{!isConnected && (
+						<div className="mb-3 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+							<p className="text-xs text-yellow-400 font-mono">
+								⚠️ Connect wallet to investigate blockchain addresses (requires 0.0001 ETH payment)
+							</p>
+						</div>
+					)}
+					
+					{paymentStatus !== 'idle' && (
+						<div className="mb-3 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+							<p className="text-xs text-blue-400 font-mono">
+								{paymentStatus === 'paying' && `💸 x402: Waiting for payment approval...`}
+								{paymentStatus === 'investigating' && `🔍 x402: Payment confirmed, investigating...`}
+							</p>
+						</div>
+					)}
+					
 					<form onSubmit={handleSubmit} className="flex gap-3">
 						<Textarea
 							value={input}
