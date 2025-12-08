@@ -54,6 +54,16 @@ export interface EvidenceSummary {
 		largestTransaction: string;
 		smallestTransaction: string;
 	};
+	webReputation?: {
+		summary: string;
+		scamReports: number;
+		sources: string[];
+	};
+	conclusion?: {
+		verdict: "HIGH RISK - LIKELY SCAM" | "MODERATE RISK - SUSPICIOUS" | "LOW RISK - APPEARS LEGITIMATE" | "INCONCLUSIVE";
+		riskScore: number; // 0-100
+		reasoning: string; // Multi-paragraph detailed explanation
+	};
 }
 
 // Prosecution Case

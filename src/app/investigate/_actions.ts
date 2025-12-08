@@ -128,21 +128,40 @@ export async function askSherlock(message: string): Promise<SherlockResponse> {
 			});
 			
 			report += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			report += `WEB REPUTATION & COMMUNITY INTELLIGENCE\n`;
+			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+			
+			if (evidence.webReputation) {
+				report += `Scam Reports Found: ${evidence.webReputation.scamReports}\n`;
+				report += `Sources Checked: ${evidence.webReputation.sources.join(', ')}\n\n`;
+				report += evidence.webReputation.summary + `\n`;
+			} else {
+				report += `No web reputation data available.\n`;
+			}
+			
+			report += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 			report += `CONCLUSION\n`;
 			report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 			
-			if (evidence.riskIndicators.mixerUsage) {
-				report += `⚠️  SUSPICIOUS ACTIVITY DETECTED\n`;
-				report += `The subject has engaged with known privacy mixers.\n`;
-				report += `Recommend: Further investigation and monitoring.\n`;
-			} else if (evidence.riskIndicators.cexInteraction) {
-				report += `✓  LEGITIMATE ACTIVITY\n`;
-				report += `Standard exchange transactions detected.\n`;
-				report += `Risk Level: LOW\n`;
+			if (evidence.conclusion) {
+				report += `\n${evidence.conclusion.verdict}\n`;
+				report += `RISK SCORE: ${evidence.conclusion.riskScore}/100\n\n`;
+				report += evidence.conclusion.reasoning + `\n`;
 			} else {
-				report += `✓  NORMAL BEHAVIOR\n`;
-				report += `No significant risk indicators found.\n`;
-				report += `Risk Level: LOW\n`;
+				// Fallback to old logic if conclusion not generated
+				if (evidence.riskIndicators.mixerUsage) {
+					report += `⚠️  SUSPICIOUS ACTIVITY DETECTED\n`;
+					report += `The subject has engaged with known privacy mixers.\n`;
+					report += `Recommend: Further investigation and monitoring.\n`;
+				} else if (evidence.riskIndicators.cexInteraction) {
+					report += `✓  LEGITIMATE ACTIVITY\n`;
+					report += `Standard exchange transactions detected.\n`;
+					report += `Risk Level: LOW\n`;
+				} else {
+					report += `✓  NORMAL BEHAVIOR\n`;
+					report += `No significant risk indicators found.\n`;
+					report += `Risk Level: LOW\n`;
+				}
 			}
 			
 			report += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
