@@ -3,6 +3,7 @@ import { agent as evidenceAgent } from "./evidence/agent";
 import { agent as prosecutorAgent } from "./prosecutor/agent";
 import { agent as defenderAgent } from "./defender/agent";
 import { agent as judgeAgent } from "./judge/agent";
+import { agent as telegramAgent } from "./telegram/agent";
 
 /**
  * Gets the Sherlock Holmes agent instance.
@@ -42,4 +43,12 @@ export async function getDefenderAgent() {
  */
 export async function getJudgeAgent() {
 	return await judgeAgent();
+}
+
+/**
+ * Gets the Telegram Alert Agent instance.
+ * Uses ADK-TS framework for the hackathon!
+ */
+export async function getTelegramAgent() {
+	return await telegramAgent();
 }

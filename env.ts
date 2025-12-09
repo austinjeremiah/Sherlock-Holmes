@@ -12,6 +12,8 @@ config();
  * - ADK_DEBUG: Optional debug mode flag (defaults to "false")
  * - GOOGLE_API_KEY: Required API key for Google/Gemini model access
  * - PAYMENT_PRIVATE_KEY: Private key for agent payment wallet
+ * - TELEGRAM_BOT_TOKEN: Optional Telegram bot token for alerts
+ * - TELEGRAM_CHAT_ID: Optional Telegram chat ID for alerts
  */
 export const envSchema = z.object({
 	ADK_DEBUG: z.coerce.boolean().default(false),
@@ -20,6 +22,8 @@ export const envSchema = z.object({
 	ETHERSCAN_API_KEY: z.string().min(1, "ETHERSCAN_API_KEY cannot be empty"),
 	PAYMENT_PRIVATE_KEY: z.string().min(1, "PAYMENT_PRIVATE_KEY cannot be empty"),
 	PAYMENT_WALLET: z.string().min(1, "PAYMENT_WALLET cannot be empty"),
+	TELEGRAM_BOT_TOKEN: z.string().optional(),
+	TELEGRAM_CHAT_ID: z.string().optional(),
 });
 
 /**

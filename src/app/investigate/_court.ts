@@ -4,9 +4,10 @@ import { investigateWallet } from "@/agents/evidence/agent";
 import { prosecuteWallet } from "@/agents/prosecutor/agent";
 import { defendWallet } from "@/agents/defender/agent";
 import { judgeWallet } from "@/agents/judge/agent";
+import { getTelegramAgent } from "@/agents";
 
 export interface CourtStep {
-	step: "evidence" | "prosecutor" | "defender" | "judge";
+	step: "evidence" | "prosecutor" | "defender" | "judge" | "telegram";
 	content: string;
 	isComplete: boolean;
 }
@@ -137,4 +138,14 @@ export async function* runCourtCase(walletAddress: string): AsyncGenerator<Court
 		content: judgeReport,
 		isComplete: true,
 	};
+
+	// Step 5: Telegram Alert
+	try {
+		const { sendAlert } = await import("@/agents/telegram/agent");
+		await sendAlert(walletAddress, verdict.verdict, verdict.riskScore);
+		console.log("✅ Telegram alert sent");
+	} catch (error) {
+		console.error("❌ Failed to send Telegram alert:", error);
+		// Don't fail the investigation if Telegram fails
+	}
 }
