@@ -1,188 +1,306 @@
-<div align="center">
- <img src="https://files.catbox.moe/vumztw.png" alt="ADK TypeScript Logo" width="100" />
- <br/>
- <h1>ADK-TS Next.js Starter Template</h1>
- <b>Starter template for creating AI Agents with ADK-TS and Next.js</b>
- <br/>
-  <i>LLM-powered • Agent Orchestration • Interactive UI • TypeScript</i>
-</div>
+#  Sherlock Holmes AI — Multi-Agent Blockchain Forensics Court
+
+Sherlock Holmes AI is a **multi-agent on-chain investigation system** built using **ADK-TS**, enabling AI agents to analyze wallet behavior, detect suspicious patterns, debate risk, and deliver a final verdict.
+
+Each investigation is unlocked using **x402 micropayments**, and optional **Telegram Alerts** notify users of the wallet's verdict instantly.
 
 ---
 
-# Next.js AI Agent Template - Build Interactive AI Applications
+##  Problem
 
-A template for building modern AI-powered web applications using ADK-TS agents with a Next.js frontend. This template demonstrates best practices for integrating AI agents into a full-stack web application.
+- Over **70%** of crypto users cannot identify scam wallets before interacting.
+- Blockchain explorers show *data*, not *risk levels* or *wallet safety*.
+- Tracing mixers, bridges, and multi-hop flows is too complex manually.
+- No neutral system exists to **debate evidence** and issue a clear verdict.
+- Users rely on social media warnings instead of **evidence-driven analysis**.
 
-**Built with [ADK-TS](https://adk.iqai.com/) - Agent Development Kit (ADK) for TypeScript**
+---
 
-## 🎯 What This Template Shows
+##  Solution (In Short)
 
-This template demonstrates how to build **AI-powered web applications** that:
+Sherlock Holmes AI uses a **multi-agent reasoning pipeline** powered by ADK-TS:
 
-1. **🤖 Uses AI Agents** (built with ADK-TS) with specialized sub-agents:
-   - **Joke Agent**: Generates creative jokes on demand
-   - **Weather Agent**: Provides real-time weather information
+- **Evidence Agent** → gathers on-chain data
+- **Prosecutor Agent** → argues risk and suspicious patterns
+- **Defender Agent** → provides alternative explanations
+- **Judge Agent** → issues final risk score & verdict
 
-2. **🌐 Provides Modern UI** with Next.js and React for interactive agent interaction
+Investigations are gated by **x402 micropayments**.
+Users can also enable **Telegram alerts** to receive summarized verdicts.
 
-3. **🔄 Orchestrates Agents** through a root agent that routes requests to appropriate sub-agents
+---
 
-4. **⚡ Server-Side Rendering** for optimal performance and SEO
+##  Technology Stack
 
-## 🏗️ How It Works
+### AI & Multi-Agent System
 
+- ADK-TS (Agent Development Kit for TypeScript)
+- Multi-agent orchestration (Evidence → Prosecutor → Defender → Judge)
+
+### Blockchain Data
+
+- Bitquery API
+- Covalent API
+- Etherscan API
+
+### Backend
+
+- Node.js
+- Express / Serverless Functions
+
+### Frontend
+
+- Next.js
+- TailwindCSS
+- D3.js / Cytoscape.js (knowledge graph rendering)
+
+### Payments
+
+- x402 Micropayments Protocol
+
+### Messaging
+
+- Telegram Bot API
+
+---
+
+##  How Sherlock Works
+
+1. User enters a wallet address.
+2. A small **x402 micropayment** is required to unlock the investigation.
+3. After payment, ADK Coordinator launches the multi-agent pipeline.
+4. **Evidence Agent** fetches on-chain activity & builds the knowledge graph.
+5. **Prosecutor Agent** highlights suspicious or malicious patterns.
+6. **Defender Agent** provides alternative explanations for the same data.
+7. **Judge Agent** evaluates all arguments and generates:
+   - Verdict (Fraud / Innocent / Inconclusive)
+   - Risk Score
+   - Summary of key evidence
+8. (Optional) **Telegram Alert Agent** sends a notification containing:
+   - Wallet
+   - Verdict
+   - Risk Level
+
+---
+
+##  Multi-Agent Architecture (Powered by ADK-TS)
+
+### 1. Evidence Agent
+
+- Fetches all wallet activity
+- Detects mixers, large transfers, multi-hop routing
+- Builds **Evidence Summary** and **Knowledge Graph JSON**
+
+### 2. Prosecutor Agent
+
+- Highlights:
+  - High-risk patterns
+  - Suspicious fund flows
+  - Links to flagged wallets
+
+### 3. Defender Agent
+
+- Provides alternative interpretations:
+  - Privacy-based mixing
+  - Arbitrage or bot behavior
+  - Non-malicious explanations
+
+### 4. Judge Agent
+
+- Compares prosecution vs defense
+- Issues final verdict + risk score
+- Decides case based on evidence
+
+### 5. Telegram Agent *(Optional Add-On)*
+
+Sends short alert:
 ```
-┌─────────────────┐    ┌──────────────────┐
-│   Next.js UI    │    │   AI Agents      │
-│   (React)       │───▶│   (ADK-TS)       │
-│ • Interactive   │    │ • Root Agent     │
-│ • Real-time     │    │ • Joke Agent     │
-│                 │    │ • Weather Agent  │
-└─────────────────┘    └──────────────────┘
+Sherlock Alert
+Wallet: 0xABC…
+Risk Score: 82% (High)
+Verdict: Likely Fraud
 ```
 
-## 🚀 Quick Start
+---
 
-### Prerequisites
-
-- Node.js 18+ and pnpm
-- A Google account (for free AI API access)
-
-### Step 1: Create Project Using ADK CLI
-
-```bash
-# Create a new project with the Next.js starter template (replace "my-next-app" with your desired project name)
-npx @iqai/adk-cli new --template next-js-starter my-next-app
-
-# Navigate to your project and install dependencies
-cd my-next-app
-pnpm install
+## 🔌 x402 Micropayment Flow
+```
+Frontend → x402 Payment Server → Payment Verified → 
+Backend Unlocks Investigation → ADK Agents Begin
 ```
 
-### Step 2: Get Your API Keys
+---
 
-#### 🔑 Google AI API Key (Required)
-
-1. Visit [Google AI Studio](https://aistudio.google.com/api-keys)
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy the generated key
-
-### Step 3: Configure Environment
-
-```bash
-# Copy the example environment file
-cp .env.example .env.local
+##  Project Structure
 ```
-
-Edit `.env.local` with your values:
-
-```env
-GOOGLE_API_KEY=your_google_api_key_here
-LLM_MODEL=gemini-1.5-flash
-```
-
-### Step 4: Run the Development Server
-
-```bash
-# Start the Next.js development server
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## 🧪 Testing Your Template
-
-### Interactive Agent Chat
-
-1. Open your browser to [http://localhost:3000](http://localhost:3000)
-2. Use the UI to interact with the agents:
-   - Ask for a joke: "Tell me a funny joke"
-   - Get weather info: "What's the weather in New York?"
-3. Watch as the root agent routes your request to the appropriate sub-agent
-
-### Test AI Agents Locally
-
-For development and debugging, you have several options:
-
-```bash
-# Run agents in the terminal (CLI interface)
-npx @iqai/adk-cli run
-
-# Open a web interface to chat and interact with agents
-npx @iqai/adk-cli web
-```
-
-- `run`: Test agents directly in your terminal.
-- `web`: Opens a browser-based interface for interactive agent testing.
-
-## 📁 Template Structure
-
-```
-src/
+Sherlock/
+│
 ├── agents/
-│   ├── index.ts                 # Root agent orchestrator
-│   └── sub-agents/
-│       ├── joke-agent/          # Joke generation agent
-│       └── weather-agent/       # Weather information agent
-├── components/                  # React UI components
-├── app/                         # Next.js app directory
-│   ├── layout.tsx              # Root layout
-│   └── page.tsx                # Main page
-└── lib/                        # Utility functions
+│   ├── evidenceAgent.ts
+│   ├── prosecutorAgent.ts
+│   ├── defenderAgent.ts
+│   ├── judgeAgent.ts
+│   └── telegramAgent.ts
+│
+├── coordinator/
+│   └── sherlockCoordinator.ts
+│
+├── server/
+│   ├── index.ts
+│   └── payment.ts
+│
+├── frontend/
+│   ├── pages/
+│   ├── components/
+│   └── styles/
+│
+└── README.md
 ```
-
-## 🔧 Customizing the Template
-
-### Adding New Sub-Agents
-
-1. Create a new directory in `src/agents/sub-agents/`
-2. Follow the pattern from existing agents (joke-agent, weather-agent)
-3. Add the new agent to the root agent in `src/agents/index.ts`
-
-### Adding New UI Components
-
-1. Create components in `src/components/`
-2. Import and use them in `src/app/page.tsx`
-3. Style using Tailwind CSS (pre-configured)
-
-## 🐛 Troubleshooting
-
-### "Google API key invalid"
-
-- Ensure the API key is from [Google AI Studio](https://aistudio.google.com/api-keys)
-- Make sure there are no extra spaces in your `.env.local` file
-- Verify the key hasn't been revoked in the Google Cloud console
-
-### "Cannot find agents"
-
-- Ensure all dependencies are installed: `pnpm install`
-- Check that environment variables are properly set
-- Verify the `.env.local` file exists and has the correct values
-
-### "Port 3000 is already in use"
-
-```bash
-# Run on a different port
-pnpm dev -- -p 3001
-```
-
-## 📚 Learn More
-
-- [ADK-TS Documentation](https://adk.iqai.com/)
-- [ADK-TS CLI Documentation](https://adk.iqai.com/docs/cli)
-- [GitHub Repository](https://github.com/IQAICOM/adk-ts)
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-
-## 🤝 Contributing
-
-This [template](https://github.com/IQAIcom/adk-ts/tree/main/apps/starter-templates/next-js-starter) is open source and contributions are welcome! Feel free to:
-
-- Report bugs or suggest improvements
-- Add new agent examples
-- Improve documentation
-- Share your customizations
 
 ---
 
-**🎉 Ready to build?** This template gives you everything you need to start building AI-powered web applications with Next.js and ADK-TS!
+##  Environment Variables (`.env`)
+```env
+# DEBUG SETTINGS
+ADK_DEBUG=false
+
+# AI MODEL CONFIGURATION
+GOOGLE_API_KEY=
+LLM_MODEL=gemini-2.5-flash
+
+# BLOCKCHAIN API CONFIGURATION
+ETHERSCAN_API_KEY=
+COVALENT_API_KEY=
+BITQUERY_API_KEY=
+
+# PAYMENT CONFIG (x402)
+PAYMENT_PRIVATE_KEY=0x
+PAYMENT_WALLET=0x
+
+# TELEGRAM ALERT CONFIGURATION
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+
+# NEXT.JS PUBLIC VARIABLES
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+---
+
+##  Setup & Installation
+
+### 1. Install Dependencies
+```sh
+npm install
+```
+
+### 2. Start Next.js Frontend
+```sh
+npm run dev
+```
+
+### 3. Start Backend Payment Server
+```sh
+npm run dev:server
+```
+
+### 4. Start ADK-TS Multi-Agent Coordinator
+```sh
+npm run dev:coordinator
+```
+
+---
+
+##  Running an Investigation
+
+1. Open the frontend (Next.js).
+2. Enter wallet address.
+3. Complete x402 micropayment.
+4. ADK coordinator runs agents sequentially.
+5. View:
+   - Evidence summary
+   - Prosecutor vs Defender arguments
+   - Final verdict + score
+6. (Optional) Receive Telegram alert.
+
+---
+
+##  Where ADK-TS Is Used (Important Section)
+
+Sherlock Holmes AI deeply integrates **ADK-TS** for:
+
+### ✔ Agent lifecycle control
+
+- State transitions
+- Tool execution
+- Error handling
+
+### ✔ Multi-agent orchestration
+
+- Passing outputs between agents
+- Coordinated reasoning
+- Chained analysis
+
+### ✔ Tooling integration
+
+- Blockchain API tools
+- Telegram tool
+- Payment unlock tool
+
+### ✔ Memory & shared context
+
+- EvidenceSummary → Prosecutor → Defender → Judge
+
+**Without ADK-TS, this multi-agent chain-of-thought investigation would not be possible.**
+
+---
+
+##  API Endpoints
+
+### POST `/pay`
+
+Start x402 micropayment session.
+
+### POST `/investigate`
+
+Begin multi-agent investigation once payment is verified.
+
+### POST `/alert`
+
+Trigger Telegram notification (testing).
+
+---
+
+## 📜 Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start frontend |
+| `npm run dev:server` | Start backend payment server |
+| `npm run dev:coordinator` | Start ADK-TS multi-agent coordinator |
+| `npm run build` | Build project |
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+##  Credits
+
+Built by **Me**
+
+Powered by:
+- ADK-TS
+- x402
+- Bitquery / Covalent / Etherscan
+- Gemini Flash
+- Next.js
+
+---
+
+##  Final Note
+
+Sherlock Holmes AI brings **courtroom-style reasoning** to blockchain safety, transforming raw on-chain data into **clear, actionable verdicts** using multi-agent intelligence.
