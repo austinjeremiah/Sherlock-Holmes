@@ -29,10 +29,10 @@ export interface SherlockResponse {
 		})[];
 		edges: GraphEdge[];
 	};
-	agentStep?: "evidence" | "prosecutor" | "defender" | "judge";
+	agentStep?: "evidence" | "prosecutor" | "defender" | "judge" | "telegram";
 	isComplete?: boolean;
 	courtSteps?: Array<{
-		step: "evidence" | "prosecutor" | "defender" | "judge";
+		step: "evidence" | "prosecutor" | "defender" | "judge" | "telegram";
 		content: string;
 	}>;
 }
