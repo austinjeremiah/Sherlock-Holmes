@@ -45,7 +45,7 @@ export async function askSherlock(message: string): Promise<SherlockResponse> {
 		if (walletMatch) {
 			const walletAddress = walletMatch[0];
 			const courtSteps: Array<{
-				step: "evidence" | "prosecutor" | "defender" | "judge";
+				step: "evidence" | "prosecutor" | "defender" | "judge" | "telegram";
 				content: string;
 			}> = [];
 
