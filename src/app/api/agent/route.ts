@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRootAgent } from "@/agents";
-import { runCourtCase } from "@/app/investigate/_court";
 import { investigateWallet } from "@/agents/evidence/agent";
+import { prosecuteWallet } from "@/agents/prosecutor/agent";
+import { defendWallet } from "@/agents/defender/agent";
+import { judgeWallet } from "@/agents/judge/agent";
+import { formatEvidence, formatProsecutor, formatDefender, formatJudge } from "./_formatter";
 
 /**
  * POST /api/agent
@@ -30,42 +33,46 @@ export async function POST(req: NextRequest) {
 		if (walletMatch) {
 			// Full investigation with all agents
 			const walletAddress = walletMatch[0];
-			const courtSteps: Array<{
-				step: string;
-				content: string;
-			}> = [];
 
-			// Run the full court case and collect all steps
-			for await (const step of runCourtCase(walletAddress)) {
-				if (step.isComplete) {
-					courtSteps.push({
-						step: step.step,
-						content: step.content,
-					});
-				}
-			}
-
-			// Get the graph from evidence
+			// Step 1: Evidence Agent
 			const evidenceJson = await investigateWallet(walletAddress);
 			const evidence = JSON.parse(evidenceJson);
+			const evidenceReport = formatEvidence(evidence);
 
-			// Combine all court outputs
-			const fullReport = courtSteps.map(s => s.content).join("\n\n");
+			// Step 2: Prosecutor Agent
+			const prosecutionCase = await prosecuteWallet(evidence);
+			const prosecutorReport = formatProsecutor(prosecutionCase);
 
+			// Step 3: Defender Agent
+			const defenseCase = await defendWallet(evidence, prosecutionCase);
+			const defenderReport = formatDefender(defenseCase);
+
+			// Step 4: Judge Agent
+			const verdict = await judgeWallet(evidence, prosecutionCase, defenseCase);
+			const judgeReport = formatJudge(verdict);
+
+			// Step 5: Send Telegram Alert
+			try {
+				const { sendAlert } = await import("@/agents/telegram/agent");
+				await sendAlert(walletAddress, verdict.verdict, verdict.riskScore);
+			} catch (error) {
+				console.error("❌ Failed to send Telegram alert:", error);
+			}
+
+			// Combine all reports in clean format
+			const fullReport = [evidenceReport, prosecutorReport, defenderReport, judgeReport].join("\n\n---\n\n");
+
+			// Return clean chat-style response
 			return NextResponse.json({
 				success: true,
 				walletAddress,
-				// Full report (for ATP)
-				report: fullReport,
-				// Structured steps (for chat UI)
-				courtSteps: courtSteps,
-				// Graph data
+				response: fullReport,
+				verdict: verdict.verdict,
+				riskScore: verdict.riskScore,
 				graph: {
 					nodes: evidence.graph.nodes,
 					edges: evidence.graph.edges
 				},
-				// Metadata
-				agents: courtSteps.map(s => s.step),
 				timestamp: new Date().toISOString(),
 			});
 		}
