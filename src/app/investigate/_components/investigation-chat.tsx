@@ -149,7 +149,7 @@ ${currentGraph.edges.map(edge => `- ${edge.source} → ${edge.target} (${edge.tx
 				const paymentMsg: Message = {
 					id: generateId(),
 					role: "agent",
-					content: `💰 Initiating x402 payment protocol...\n\nInvestigation cost: 0.0001 ETH\n\nPlease approve the payment when prompted...`,
+					content: ` Initiating x402 payment protocol...\n\nInvestigation cost:  $0.0001\n\nPlease approve the payment when prompted...`,
 				};
 				setMessages((prev) => [...prev, paymentMsg]);
 
